@@ -1,0 +1,8 @@
+{
+  "name": "Genzio Email Automation",
+  "description": "A complete SaaS website for Genzio, a company by NEXZIVO, featuring a modern dark theme with neon accents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

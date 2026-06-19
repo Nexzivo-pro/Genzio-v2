@@ -1,0 +1,107 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document containing authentication metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Connection": {
+      "title": "Connection",
+      "description": "Google accounts (Gmail or Sheets) connected by the user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "picture": { "type": "string" },
+        "provider": { "type": "string", "enum": ["gmail", "sheets"] },
+        "status": { "type": "string" },
+        "lastSync": { "type": "string" },
+        "access_token": { "type": "string" },
+        "refresh_token": { "type": "string" },
+        "expires_at": { "type": "number" }
+      },
+      "required": ["email", "provider", "access_token"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "description": "Personalized outreach campaign details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "leadsCount": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Template": {
+      "title": "Template",
+      "description": "Outreach message body/subject drafts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" }
+      },
+      "required": ["subject", "body"]
+    },
+    "Signature": {
+      "title": "Signature",
+      "description": "User email signatures",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["name", "content"]
+    },
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Performance tracking analytics record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sentCount": { "type": "number" },
+        "failCount": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["sentCount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data record"
+    },
+    "/users/{userId}/connections/{connectionId}": {
+      "schema": "Connection",
+      "description": "Connected Gmail/Sheets OAuth channel details"
+    },
+    "/users/{userId}/campaigns/{campaignId}": {
+      "schema": "Campaign",
+      "description": "Active email automation campaign schedules"
+    },
+    "/users/{userId}/templates/{templateId}": {
+      "schema": "Template",
+      "description": "Outreach templates"
+    },
+    "/users/{userId}/signatures/{signatureId}": {
+      "schema": "Signature",
+      "description": "Connected signatures"
+    },
+    "/users/{userId}/analytics/{analyticsId}": {
+      "schema": "Analytics",
+      "description": "Campaign execution metrics"
+    }
+  }
+}
