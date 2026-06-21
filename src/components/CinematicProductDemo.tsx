@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Mail,
-  FileText,
   CheckCircle2,
   XCircle,
   BarChart3,
@@ -10,12 +9,10 @@ import {
   Send,
   Clock,
   Sparkles,
-  User,
   RefreshCw,
   Layers,
   Zap,
   Shield,
-  FileOutput,
   MousePointer2,
 } from "lucide-react";
 
@@ -42,34 +39,6 @@ const scenes = [
   "GENZIO_AI",
   "COMPLETED",
 ];
-
-function MouseCursor({
-  x,
-  y,
-  isClicking,
-}: {
-  x: number;
-  y: number;
-  isClicking?: boolean;
-}) {
-  return (
-    <motion.div
-      className="absolute z-50 pointer-events-none"
-      animate={{ x, y, scale: isClicking ? 0.9 : 1 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20, mass: 0.5 }}
-    >
-      <MousePointer2 className="w-6 h-6 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] fill-black/50" />
-      {isClicking && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0.8 }}
-          animate={{ scale: 2, opacity: 0 }}
-          transition={{ duration: 0.4 }}
-          className="absolute top-1 left-1 w-4 h-4 rounded-full bg-neon-cyan/50"
-        />
-      )}
-    </motion.div>
-  );
-}
 
 function SceneLogin() {
   return (
@@ -102,7 +71,7 @@ function SceneLogin() {
         <motion.div
           animate={{ scale: [1, 0.95, 1] }}
           transition={{ delay: 1.6, duration: 0.2 }}
-          className="w-full h-10 bg-white rounded-lg flex items-center justify-center text-black font-bold text-sm"
+          className="w-full h-10 bg-white rounded-lg flex items-center justify-center text-black font-bold text-sm border-none shadow-none"
         >
           Enter Workspace
         </motion.div>
@@ -270,7 +239,7 @@ function SceneEmailAutomation() {
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}
                 transition={{ delay: 1.5, duration: 0.5 }}
-                className="inline-block overflow-hidden whitespace-nowrap text-white font-bold bg-white/10 px-1 ml-1 rounded"
+                className="inline-block overflow-hidden whitespace-nowrap text-white font-bold bg-white/10 px-1 ml-1 rounded align-bottom"
               >
                 raised Series B
               </motion.span>
@@ -283,7 +252,7 @@ function SceneEmailAutomation() {
             transition={{ delay: 2.2 }}
             className="mt-6 flex justify-end"
           >
-            <div className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+            <div className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border-none">
               <Send className="w-4 h-4" /> Preview & Build
             </div>
           </motion.div>
@@ -562,7 +531,7 @@ function SceneGenzioAI() {
 
         {/* User Message */}
         <div className="flex gap-4 self-end w-3/4 mb-2">
-          <div className="bg-white/10 border border-white/20 p-4 rounded-2xl rounded-tr-sm relative z-10">
+          <div className="bg-white/10 border border-white/20 p-4 rounded-2xl rounded-tr-sm relative z-10 w-full">
             <div className="flex items-center gap-2 mb-2">
               <ImageIcon className="w-4 h-4 text-gray-400" />
               <span className="text-[10px] font-mono text-gray-400">
@@ -690,7 +659,10 @@ export function CinematicProductDemo() {
   }, []);
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-32 px-4 relative z-10">
+    <div
+      className="w-full max-w-5xl mx-auto my-32 px-4 relative z-10"
+      id="cinematic-demo-section"
+    >
       {/* Glow Effects */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-gradient-to-br from-neon-cyan/10 to-neon-pink/10 blur-[100px] rounded-full pointer-events-none" />
 

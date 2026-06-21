@@ -39,6 +39,8 @@ import {
   GenzioAIOrb,
 } from "../components/HeroVisual";
 
+import PremiumBenefitStrip from "../components/PremiumBenefitStrip";
+
 const EmailParticle: React.FC<{ angle: number; delay: number }> = ({
   angle,
   delay,
@@ -62,10 +64,16 @@ const EmailParticle: React.FC<{ angle: number; delay: number }> = ({
 };
 
 function EmailParticles() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+  const count = isMobile ? 2 : 4;
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {[...Array(6)].map((_, i) => (
-        <EmailParticle key={i} angle={(i * Math.PI * 2) / 6} delay={i * 0.2} />
+      {[...Array(count)].map((_, i) => (
+        <EmailParticle
+          key={i}
+          angle={(i * Math.PI * 2) / count}
+          delay={i * 0.2}
+        />
       ))}
     </div>
   );
@@ -400,17 +408,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW IT WORKS SECTION (Cinematic Demo) */}
-      <section
-        id="cinematic-demo-section"
-        className="relative z-10 bg-[#050508] border-b border-white/5 scroll-mt-24 overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-[#00f3ff]/5 bg-scanlines pointer-events-none opacity-20"></div>
-        {/* Background neon grid behind section */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none"></div>
+      {/* PREMIUM BENEFITS STRIP */}
+      <PremiumBenefitStrip />
 
-        <CinematicProductDemo />
-      </section>
+      {/* CINEMATIC PRODUCT DEMO */}
+      <CinematicProductDemo />
 
       {/* FEATURES MARQUEE */}
       <section className="py-24 bg-[#07070a]/40 backdrop-blur-md border-y border-white/5 relative z-10 overflow-hidden">

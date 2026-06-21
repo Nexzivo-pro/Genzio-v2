@@ -6,13 +6,15 @@ import { auth } from '../../lib/firebase';
 interface VerificationResult {
   email: string;
   isDuplicate: boolean;
-  status: 'Verified' | 'Invalid' | 'Risky' | 'Unknown';
+  status: 'Verified' | 'Not Found / Hazard' | 'Unverified';
   reason: string;
   checks: {
-    syntax: boolean;
-    mx: boolean;
+    syntaxValid: boolean;
+    domainValid: boolean;
+    mxFound: boolean;
     disposable: boolean;
-    role: boolean;
+    roleBased: boolean;
+    riskyPattern: boolean;
   };
 }
 
@@ -20,7 +22,7 @@ export default function EmailVerification() {
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
-  const [filterState, setFilterState] = useState<'all' | 'Verified' | 'Invalid' | 'Risky' | 'Unknown'>('all');
+  const [filterState, setFilterState] = useState<'all' | 'Verified' | 'Not Found / Hazard' | 'Unverified'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -79,7 +81,7 @@ export default function EmailVerification() {
          seenEmails.add(email);
          
          const r = resultMap.get(email) || {
-            email, status: 'Unknown', reason: 'Verification failed', checks: { syntax: false, mx: false, disposable: false, role: false }
+            email, status: 'Unverified', reason: 'Verification failed', checks: { syntaxValid: false, domainValid: false, mxFound: false, disposable: false, roleBased: false, riskyPattern: false }
          };
          
          finalResults.push({
@@ -114,6 +116,21 @@ export default function EmailVerification() {
     });
   }, [results, filterState, searchQuery]);
 
+  const [pageNumber, setPageNumber] = useState(1);
+  const itemsPerPage = 50;
+  
+  // Reset page when filter/search changes
+  useMemo(() => {
+    setPageNumber(1);
+  }, [filterState, searchQuery, results.length]);
+
+  const paginatedResults = useMemo(() => {
+    const startIndex = (pageNumber - 1) * itemsPerPage;
+    return filteredResults.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredResults, pageNumber]);
+  
+  const totalPages = Math.ceil(filteredResults.length / itemsPerPage);
+
   const stats = useMemo(() => {
     const uniqueResults = results.filter(r => !r.isDuplicate);
     return {
@@ -121,9 +138,8 @@ export default function EmailVerification() {
       duplicates: results.filter(r => r.isDuplicate).length,
       totalChecked: uniqueResults.length,
       verified: uniqueResults.filter(r => r.status === 'Verified').length,
-      invalid: uniqueResults.filter(r => r.status === 'Invalid').length,
-      risky: uniqueResults.filter(r => r.status === 'Risky').length,
-      unknown: uniqueResults.filter(r => r.status === 'Unknown').length,
+      unverified: uniqueResults.filter(r => r.status === 'Unverified').length,
+      hazard: uniqueResults.filter(r => r.status === 'Not Found / Hazard').length,
     };
   }, [results]);
 
@@ -305,7 +321,7 @@ export default function EmailVerification() {
             className="space-y-8"
           >
             {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="glass p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:bg-white/[0.03] transition-colors group">
                  <span className="text-gray-400 text-sm font-medium">Total Checked</span>
                  <span className="text-3xl font-display font-bold mt-2 text-white group-hover:text-neon-cyan transition-colors">{stats.totalChecked}</span>
@@ -314,17 +330,13 @@ export default function EmailVerification() {
                  <span className="text-green-400/80 text-sm font-medium flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4"/> Verified</span>
                  <span className="text-3xl font-display font-bold mt-2 text-green-400 shadow-green-500/50 drop-shadow-lg">{stats.verified}</span>
               </div>
-              <div className="glass p-5 rounded-2xl border border-red-500/20 bg-red-500/5 flex flex-col justify-between">
-                 <span className="text-red-400/80 text-sm font-medium flex items-center gap-1.5"><XCircle className="w-4 h-4"/> Invalid</span>
-                 <span className="text-3xl font-display font-bold mt-2 text-red-500">{stats.invalid}</span>
-              </div>
               <div className="glass p-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 flex flex-col justify-between">
-                 <span className="text-yellow-400/80 text-sm font-medium flex items-center gap-1.5"><AlertTriangle className="w-4 h-4"/> Risky</span>
-                 <span className="text-3xl font-display font-bold mt-2 text-yellow-500">{stats.risky}</span>
+                 <span className="text-yellow-400/80 text-sm font-medium flex items-center gap-1.5"><AlertTriangle className="w-4 h-4"/> Not Found / Hazard</span>
+                 <span className="text-3xl font-display font-bold mt-2 text-yellow-500">{stats.hazard}</span>
               </div>
-              <div className="glass p-5 rounded-2xl border border-gray-500/20 bg-gray-500/5 flex flex-col justify-between">
-                 <span className="text-gray-400/80 text-sm font-medium flex items-center gap-1.5"><HelpCircle className="w-4 h-4"/> Unknown</span>
-                 <span className="text-3xl font-display font-bold mt-2 text-gray-400">{stats.unknown}</span>
+              <div className="glass p-5 rounded-2xl border border-red-500/20 bg-red-500/5 flex flex-col justify-between">
+                 <span className="text-red-400/80 text-sm font-medium flex items-center gap-1.5"><XCircle className="w-4 h-4"/> Unverified</span>
+                 <span className="text-3xl font-display font-bold mt-2 text-red-500">{stats.unverified}</span>
               </div>
             </div>
 
@@ -345,23 +357,18 @@ export default function EmailVerification() {
                    Verified
                  </button>
                  <button 
-                   onClick={() => setFilterState('Invalid')}
-                   className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterState === 'Invalid' ? 'bg-red-500/20 text-red-400 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                   onClick={() => setFilterState('Not Found / Hazard')}
+                   className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterState === 'Not Found / Hazard' ? 'bg-yellow-500/20 text-yellow-400 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                  >
-                   Invalid
+                   Not Found / Hazard
                  </button>
                  <button 
-                   onClick={() => setFilterState('Risky')}
-                   className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterState === 'Risky' ? 'bg-yellow-500/20 text-yellow-400 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                   onClick={() => setFilterState('Unverified')}
+                   className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterState === 'Unverified' ? 'bg-red-500/20 text-red-400 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                  >
-                   Risky
+                   Unverified
                  </button>
-                 <button 
-                   onClick={() => setFilterState('Unknown')}
-                   className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filterState === 'Unknown' ? 'bg-gray-500/20 text-gray-400 shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                 >
-                   Unknown
-                 </button>
+
                </div>
 
                <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -412,8 +419,10 @@ export default function EmailVerification() {
                    </thead>
                    <tbody className="divide-y divide-white/5">
                      <AnimatePresence>
-                       {filteredResults.length > 0 ? (
-                         filteredResults.map((item, idx) => (
+                       {paginatedResults.length > 0 ? (
+                         paginatedResults.map((item, idx) => {
+                           const actualIndex = (pageNumber - 1) * itemsPerPage + idx + 1;
+                           return (
                            <motion.tr 
                              initial={{ opacity: 0 }}
                              animate={{ opacity: 1 }}
@@ -422,7 +431,7 @@ export default function EmailVerification() {
                              key={`${item.email}-${idx}`} 
                              className="hover:bg-white/[0.02] transition-colors group"
                            >
-                             <td className="px-6 py-4 text-sm font-mono text-gray-600 text-center">{idx + 1}</td>
+                             <td className="px-6 py-4 text-sm font-mono text-gray-600 text-center">{actualIndex}</td>
                              <td className="px-6 py-4 text-sm text-gray-300 font-medium font-mono truncate max-w-xs sm:max-w-md">
                                {item.email}
                                {item.isDuplicate && (
@@ -438,22 +447,16 @@ export default function EmailVerification() {
                                    <span className="text-xs font-medium text-green-400">Verified</span>
                                  </div>
                                )}
-                               {item.status === 'Invalid' && (
+                               {item.status === 'Unverified' && (
                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20">
                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
-                                   <span className="text-xs font-medium text-red-400">Invalid</span>
+                                   <span className="text-xs font-medium text-red-400">Unverified</span>
                                  </div>
                                )}
-                               {item.status === 'Risky' && (
+                               {item.status === 'Not Found / Hazard' && (
                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]" />
-                                   <span className="text-xs font-medium text-yellow-400">Risky</span>
-                                 </div>
-                               )}
-                               {item.status === 'Unknown' && (
-                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-500/10 border border-gray-500/20">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 shadow-[0_0_8px_#9ca3af]" />
-                                   <span className="text-xs font-medium text-gray-400">Unknown</span>
+                                   <span className="text-xs font-medium text-yellow-400 whitespace-nowrap">Not Found / Hazard</span>
                                  </div>
                                )}
                              </td>
@@ -462,12 +465,12 @@ export default function EmailVerification() {
                              </td>
                              <td className="px-6 py-4 text-right">
                                {item.status === 'Verified' && <CheckCircle2 className="w-5 h-5 text-green-400 inline-block drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />}
-                               {item.status === 'Invalid' && <XCircle className="w-5 h-5 text-red-500 inline-block drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" />}
-                               {item.status === 'Risky' && <AlertTriangle className="w-5 h-5 text-yellow-500 inline-block drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />}
-                               {item.status === 'Unknown' && <HelpCircle className="w-5 h-5 text-gray-400 inline-block drop-shadow-[0_0_5px_rgba(156,163,175,0.5)]" />}
+                               {item.status === 'Unverified' && <XCircle className="w-5 h-5 text-red-500 inline-block drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" />}
+                               {item.status === 'Not Found / Hazard' && <AlertTriangle className="w-5 h-5 text-yellow-500 inline-block drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />}
                              </td>
                            </motion.tr>
-                         ))
+                         );
+                        })
                        ) : (
                          <tr>
                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 text-sm">
@@ -479,6 +482,30 @@ export default function EmailVerification() {
                    </tbody>
                  </table>
                </div>
+               
+               {totalPages > 1 && (
+                 <div className="flex items-center justify-between px-6 py-4 border-t border-white/5 bg-black/20">
+                   <span className="text-sm text-gray-500 font-mono">
+                     Showing {((pageNumber - 1) * itemsPerPage) + 1} - {Math.min(pageNumber * itemsPerPage, filteredResults.length)} of {filteredResults.length}
+                   </span>
+                   <div className="flex gap-2">
+                     <button
+                       onClick={() => setPageNumber(p => Math.max(1, p - 1))}
+                       disabled={pageNumber === 1}
+                       className="px-3 py-1 bg-white/5 border border-white/10 rounded hover:bg-white/10 disabled:opacity-50 text-sm font-medium transition-colors"
+                     >
+                       Prev
+                     </button>
+                     <button
+                       onClick={() => setPageNumber(p => Math.min(totalPages, p + 1))}
+                       disabled={pageNumber === totalPages}
+                       className="px-3 py-1 bg-white/5 border border-white/10 rounded hover:bg-white/10 disabled:opacity-50 text-sm font-medium transition-colors"
+                     >
+                       Next
+                     </button>
+                   </div>
+                 </div>
+               )}
             </div>
             
           </motion.div>

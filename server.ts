@@ -13,13 +13,18 @@ import {
   getClientCredentials
 } from './server/googleApis';
 
+import fs from 'fs';
+
 // Initialize Firebase Admin SDK
 if (getApps().length === 0) {
   try {
+    const firebaseConfigPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+    const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+    
     initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID || 'involuted-chess-2sjh2'
+      projectId: firebaseConfig.projectId
     });
-    console.log('[Firebase Admin] Initialized successfully.');
+    console.log('[Firebase Admin] Initialized successfully with project:', firebaseConfig.projectId);
   } catch (err) {
     console.error('[Firebase Admin] Initialization failed:', err);
   }
@@ -421,6 +426,48 @@ async function startServer() {
     } catch (err: any) {
       console.error('Email verification error:', err);
       res.status(500).json({ error: 'Verification service error' });
+    }
+  });
+
+  // --- GENZIO AI CHAT ENDPOINT ---
+  
+  app.post('/api/chat', authenticateUser, async (req, res) => {
+    try {
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Messages array is required' });
+      }
+
+      if (!process.env.GEMINI_API_KEY) {
+         return res.status(500).json({ error: 'Gemini API Key is not configured on the server.' });
+      }
+
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+      const systemInstruction = `You are Genzio AI, a specialized premium AI assistant focused strictly on client acquisition, lead generation, outreach strategies, cold email writing, sales conversations, and agency/business growth. You are part of the Genzio platform (a cold outreach automation tool). If the user asks general questions unrelated to these topics, you MUST politely refuse and clarify that you only assist with client acquisition and outreach workflows. Be concise, highly professional, and actionable. Do not use markdown unless necessary for code or formatting.`;
+
+      // Format messages for the API. The last message is the user prompt.
+      // Prior messages are history.
+      const transformedContents = messages.map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content || m.text || '' }]
+      }));
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: transformedContents,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.7,
+        }
+      });
+
+      res.json({ response: response.text });
+
+    } catch (err: any) {
+      console.error('AI Chat Error:', err);
+      res.status(500).json({ error: 'Failed to generate AI response' });
     }
   });
 

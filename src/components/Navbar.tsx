@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Zap, Sun, Moon, ChevronDown, Mail, BarChart3, MessageSquare, LogOut, ShieldCheck } from 'lucide-react';
+import { Menu, X, Zap, Sun, Moon, Circle, ChevronDown, Mail, BarChart3, MessageSquare, LogOut, ShieldCheck } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useAuth } from '../lib/AuthContext';
 
@@ -11,10 +11,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { user, userProfile, logout } = useAuth();
 
   useEffect(() => {
@@ -29,13 +31,17 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
+    setIsThemeDropdownOpen(false);
   }, [location.pathname]);
 
-  // Click outside listener to close tool dropdown
+  // Click outside listener to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
+        setIsThemeDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -208,13 +214,49 @@ export default function Navbar() {
 
 
           <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-300 hover:text-neon-cyan transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <div className="relative" ref={themeDropdownRef}>
+              <button
+                onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
+                className="p-2 text-gray-300 hover:text-neon-cyan transition-colors rounded-lg hover:bg-white/5"
+                aria-label="Theme settings"
+              >
+                {theme === 'light' ? <Sun className="w-5 h-5" /> : theme === 'dark' ? <Moon className="w-5 h-5" /> : <Circle className="w-5 h-5 fill-current" />}
+              </button>
+              
+              <AnimatePresence>
+                {isThemeDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-2 w-48 glass rounded-xl border border-white/10 p-2 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] z-50 backdrop-blur-2xl bg-[#0a0a0f]/95 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => { setTheme('light'); setIsThemeDropdownOpen(false); }}
+                      className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ${theme === 'light' ? 'bg-white/10 text-neon-cyan' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                    >
+                      <Sun className="w-4 h-4" />
+                      <span className="text-sm font-medium">Light</span>
+                    </button>
+                    <button
+                      onClick={() => { setTheme('dark'); setIsThemeDropdownOpen(false); }}
+                      className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ${theme === 'dark' ? 'bg-white/10 text-neon-cyan' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                    >
+                      <Moon className="w-4 h-4" />
+                      <span className="text-sm font-medium">Dark</span>
+                    </button>
+                    <button
+                      onClick={() => { setTheme('ultra-dark'); setIsThemeDropdownOpen(false); }}
+                      className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 ${theme === 'ultra-dark' ? 'bg-white/10 text-neon-cyan' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                    >
+                      <Circle className="w-4 h-4 fill-current" />
+                      <span className="text-sm font-medium">Ultra Dark</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             {user ? (
               <>
                 <div className="flex items-center gap-2">
@@ -264,13 +306,6 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
             <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-300 hover:text-neon-cyan transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-gray-300 hover:text-white p-2"
             >
@@ -290,6 +325,35 @@ export default function Navbar() {
             className="md:hidden glass border-t border-white/10 mt-4 overflow-hidden"
           >
             <div className="px-4 py-6 space-y-4">
+              
+              {/* Theme Segmented Control */}
+              <div className="flex items-center gap-2 p-1 bg-white/5 rounded-xl border border-white/10 w-full mb-6 relative">
+                <button
+                  onClick={() => setTheme('light')}
+                  className={`flex-1 flex justify-center py-2 rounded-lg transition-all duration-300 relative z-10 ${theme === 'light' ? 'text-neon-cyan' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Sun className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setTheme('dark')}
+                  className={`flex-1 flex justify-center py-2 rounded-lg transition-all duration-300 relative z-10 ${theme === 'dark' ? 'text-neon-cyan' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Moon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setTheme('ultra-dark')}
+                  className={`flex-1 flex justify-center py-2 rounded-lg transition-all duration-300 relative z-10 ${theme === 'ultra-dark' ? 'text-neon-cyan' : 'text-gray-400 hover:text-white'}`}
+                >
+                  <Circle className="w-4 h-4 fill-current" />
+                </button>
+                
+                {/* Segmented slider background */}
+                <div 
+                  className="absolute top-1 bottom-1 w-[calc(33.33%-4px)] bg-white/10 rounded-lg shadow-sm transition-transform duration-300 ease-spring"
+                  style={{ transform: `translateX(${theme === 'light' ? '2px' : theme === 'dark' ? 'calc(100% + 4px)' : 'calc(200% + 6px)'})` }}
+                />
+              </div>
+
               <Link to="/" className="block text-base font-medium text-gray-300 hover:text-neon-cyan transition-colors py-1">Home</Link>
               <Link to="/features" className="block text-base font-medium text-gray-300 hover:text-neon-cyan transition-colors py-1">Features</Link>
 

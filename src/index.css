@@ -1,29 +1,69 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Poppins:wght@400;500;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600&family=Montserrat:wght@400;600&family=Lato:wght@400;700&family=Source+Sans+3:wght@400;600&family=Nunito:wght@400;600&family=Work+Sans:wght@400;600&display=swap');
 @import "tailwindcss";
 
+@layer base {
+  :root, html.dark {
+    --bg-base: #030303;
+    --surface-base: #0a0a0f;
+    --text-primary: #ffffff;
+    --text-muted: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.08); /* white/8 */
+    --card-bg: rgba(7, 7, 10, 0.6);
+    --accent-cyan: #00f3ff;
+    --accent-pink: #ff00ff;
+    --glow-intensity: 0.15;
+  }
+  
+  html.light {
+    --bg-base: #f8fafc;
+    --surface-base: #ffffff;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --card-bg: #ffffff;
+    --accent-cyan: #0284c7;
+    --accent-pink: #db2777;
+    --glow-intensity: 0.15;
+  }
+  
+  html.ultra-dark {
+    --bg-base: #000000;
+    --surface-base: #030303;
+    --text-primary: #ffffff;
+    --text-muted: #6b7280;
+    --border-color: rgba(255, 255, 255, 0.03);
+    --card-bg: rgba(5, 5, 5, 0.95);
+    --accent-cyan: #00e0ef;
+    --accent-pink: #e000e0;
+    --glow-intensity: 0.25;
+  }
+}
+
 @theme {
-  --color-matte-black: #030303;
-  --color-matte-dark: #0a0a0f;
-  --color-neon-cyan: #00f3ff;
-  --color-neon-pink: #ff00ff;
+  --color-background: var(--bg-base);
+  --color-surface: var(--surface-base);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border-subtle: var(--border-color);
+  
+  --color-matte-black: var(--bg-base);
+  --color-matte-dark: var(--surface-base);
+  --color-neon-cyan: var(--accent-cyan);
+  --color-neon-pink: var(--accent-pink);
   
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 @keyframes cyberGridMove {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 0 50px;
-  }
+  0% { background-position: 0 0; }
+  100% { background-position: 0 50px; }
 }
 
 .bg-cyber-grid {
   background-image: 
-    linear-gradient(to right, rgba(0, 243, 255, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 243, 255, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in srgb, var(--accent-cyan) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--accent-cyan) 12%, transparent) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: cyberGridMove 20s linear infinite;
 }
@@ -31,60 +71,120 @@
 .bg-scanlines {
   background: repeating-linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.1) 0px,
-    rgba(255, 255, 255, 0.1) 1px,
+    color-mix(in srgb, var(--text-primary) 10%, transparent) 0px,
+    color-mix(in srgb, var(--text-primary) 10%, transparent) 1px,
     transparent 1px,
     transparent 3px
   );
   background-size: 100% 6px;
+  opacity: 0.8;
 }
 
+html.light .bg-scanlines { opacity: 0.3; }
+
 .bg-radial-gradient-vignette {
-  background: radial-gradient(circle at center, transparent 35%, #030303 98%);
+  background: radial-gradient(circle at center, transparent 35%, var(--bg-base) 98%);
 }
 
 .bg-radial-horizon-glow {
-  background: radial-gradient(circle, rgba(0,243,255,0.25) 0%, rgba(255,0,255,0.08) 60%, transparent 100%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-cyan) 25%, transparent) 0%, color-mix(in srgb, var(--accent-pink) 8%, transparent) 60%, transparent 100%);
 }
+
+/* Fallbacks for existing raw color classes */
+@theme {
+  /* Override default Tailwind colors to tie into our theme variables */
+  --color-white: var(--text-primary);
+  --color-gray-300: var(--text-muted);
+  --color-gray-400: var(--text-muted);
+  --color-gray-500: var(--text-muted);
+  
+  /* Map arbitrary backgrounds used in components */
+  --color-matte-black: var(--bg-base);
+  --color-matte-dark: var(--surface-base);
+  --color-neon-cyan: var(--accent-cyan);
+  --color-neon-pink: var(--accent-pink);
+}
+
+/* Fallbacks for existing raw color classes */
+.bg-\[\#030303\], .bg-\[\#1a1a1a\], .bg-\[\#121212\] { background-color: var(--bg-base) !important; }
+.bg-\[\#0a0a0f\], .bg-\[\#050508\], .bg-\[\#07070a\], .bg-\[\#111115\], .bg-\[\#141416\], .bg-\[\#161616\] { background-color: var(--surface-base) !important; }
+
+/* Keep specific alpha ones just in case */
+.bg-\[\#050508\]\/80, .bg-\[\#07070a\]\/80, .bg-\[\#07070a\]\/60, .bg-\[\#07070a\]\/40 { background-color: var(--card-bg) !important; backdrop-filter: blur(16px); }
 
 @layer utilities {
   .glass {
-    @apply bg-[#07070a]/60 backdrop-blur-xl border border-white/8;
+    @apply backdrop-blur-xl;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
   }
   .glass-card {
-    @apply bg-matte-dark/75 backdrop-blur-2xl border border-neon-cyan/25 rounded-2xl shadow-[0_0_30px_rgba(0,243,255,0.08)];
+    @apply backdrop-blur-2xl rounded-2xl;
+    background-color: var(--surface-base);
+    border: 1px solid color-mix(in srgb, var(--accent-cyan) 25%, transparent);
+    box-shadow: 0 0 calc(30px * var(--glow-intensity)) color-mix(in srgb, var(--accent-cyan) 8%, transparent);
   }
   .glass-card-pink {
-    @apply bg-matte-dark/75 backdrop-blur-2xl border border-neon-pink/25 rounded-2xl shadow-[0_0_30px_rgba(255,0,255,0.08)];
+    @apply backdrop-blur-2xl rounded-2xl;
+    background-color: var(--surface-base);
+    border: 1px solid color-mix(in srgb, var(--accent-pink) 25%, transparent);
+    box-shadow: 0 0 calc(30px * var(--glow-intensity)) color-mix(in srgb, var(--accent-pink) 8%, transparent);
   }
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-neon-cyan to-neon-pink;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, var(--accent-cyan), var(--accent-pink));
   }
   .btn-primary {
-    @apply px-6 py-3 rounded-lg font-medium tracking-wide text-matte-black bg-neon-cyan hover:shadow-[0_0_20px_rgba(0,243,255,0.6)] hover:scale-[1.02] transform transition-all duration-300;
+    @apply px-6 py-3 rounded-lg font-medium tracking-wide transition-all duration-300 transform hover:scale-[1.02];
+    color: var(--surface-base);
+    background-color: var(--accent-cyan);
   }
+  .btn-primary:hover {
+    box-shadow: 0 0 calc(20px * (var(--glow-intensity) * 4)) color-mix(in srgb, var(--accent-cyan) 60%, transparent);
+  }
+  html.light .btn-primary { color: #ffffff; }
+
   .btn-secondary {
-    @apply px-6 py-3 rounded-lg font-medium tracking-wide text-white border border-neon-pink hover:bg-neon-pink/15 hover:shadow-[0_0_20px_rgba(255,0,255,0.4)] hover:scale-[1.02] transform transition-all duration-300;
+    @apply px-6 py-3 rounded-lg font-medium tracking-wide transition-all duration-300 transform hover:scale-[1.02];
+    color: var(--text-primary);
+    border: 1px solid var(--accent-pink);
   }
+  .btn-secondary:hover {
+    background-color: color-mix(in srgb, var(--accent-pink) 15%, transparent);
+    box-shadow: 0 0 calc(20px * (var(--glow-intensity) * 2.5)) color-mix(in srgb, var(--accent-pink) 40%, transparent);
+  }
+  html.light .btn-secondary { color: var(--accent-pink); }
+  html.light .btn-secondary:hover { color: #ffffff; background-color: var(--accent-pink); }
   
-  /* Floating hover elevations */
   .hover-float {
-    @apply transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_15px_30px_-5px_rgba(0,243,255,0.15)];
+    @apply transition-all duration-500 hover:-translate-y-2;
+  }
+  .hover-float:hover {
+    box-shadow: 0 15px 30px -5px color-mix(in srgb, var(--accent-cyan) 15%, transparent);
   }
   .hover-glow-cyan {
-    @apply transition-shadow duration-500 hover:shadow-[0_0_30px_rgba(0,243,255,0.4)];
+    @apply transition-shadow duration-500;
+  }
+  .hover-glow-cyan:hover {
+    box-shadow: 0 0 calc(30px * (var(--glow-intensity) * 2.5)) color-mix(in srgb, var(--accent-cyan) 40%, transparent);
   }
   .hover-glow-pink {
-    @apply transition-shadow duration-500 hover:shadow-[0_0_30px_rgba(255,0,255,0.4)];
+    @apply transition-shadow duration-500;
+  }
+  .hover-glow-pink:hover {
+    box-shadow: 0 0 calc(30px * (var(--glow-intensity) * 2.5)) color-mix(in srgb, var(--accent-pink) 40%, transparent);
   }
   .magnetic-btn {
     @apply relative overflow-hidden transition-all duration-300;
   }
   .border-glow {
-    @apply border border-white/10 hover:border-neon-cyan/50 transition-colors duration-500;
+    border: 1px solid var(--border-color);
+    @apply transition-colors duration-500;
+  }
+  .border-glow:hover {
+    border-color: color-mix(in srgb, var(--accent-cyan) 50%, transparent);
   }
   
-  /* Fix tailwind resetting legacy font tags created by execCommand */
   font[size="1"] { font-size: 0.75rem !important; }
   font[size="2"] { font-size: 0.875rem !important; }
   font[size="3"] { font-size: 1rem !important; }
@@ -104,18 +204,9 @@
   font[face="Nunito"] { font-family: "Nunito", sans-serif !important; }
   font[face="'Work Sans'"] { font-family: "Work Sans", sans-serif !important; }
 
-  .animate-marquee-left {
-    animation: marquee-left 40s linear infinite;
-    will-change: transform;
-  }
-  .animate-marquee-right {
-    animation: marquee-right 40s linear infinite;
-    will-change: transform;
-  }
-  .pause-on-hover:hover .animate-marquee-left,
-  .pause-on-hover:hover .animate-marquee-right {
-    animation-play-state: paused;
-  }
+  .animate-marquee-left { animation: marquee-left 40s linear infinite; will-change: transform; }
+  .animate-marquee-right { animation: marquee-right 40s linear infinite; will-change: transform; }
+  .pause-on-hover:hover .animate-marquee-left, .pause-on-hover:hover .animate-marquee-right { animation-play-state: paused; }
 }
 
 @keyframes marquee-left {
@@ -129,65 +220,8 @@
 }
 
 body {
-  @apply bg-[#030303] text-white antialiased overflow-x-hidden transition-colors duration-500;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  @apply antialiased overflow-x-hidden transition-colors duration-500;
 }
 
-/* ========================================================================== */
-/* LIGHT MODE OVERRIDES
-/* ========================================================================== */
-html.light body {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
-}
-
-/* Backgrounds */
-html.light .bg-\[\#030303\] { background-color: #f8fafc !important; }
-html.light .bg-\[\#1a1a1a\], html.light .bg-\[\#121212\]\/90, html.light .bg-\[\#0a0a0f\], html.light .bg-\[\#050508\], html.light .bg-\[\#07070a\] { background-color: #ffffff !important; }
-html.light .bg-\[\#050508\]\/80, html.light .bg-\[\#07070a\]\/80 { background-color: rgba(255,255,255,0.85) !important; }
-html.light .bg-\[\#07070a\]\/60 { background-color: rgba(255,255,255,0.6) !important; }
-html.light .bg-\[\#07070a\]\/40 { background-color: rgba(255,255,255,0.5) !important; }
-html.light .bg-\[\#111115\], html.light .bg-\[\#141416\], html.light .bg-\[\#161616\] { background-color: #f1f5f9 !important; }
-html.light .bg-matte-dark\/75, html.light .bg-matte-dark\/95, html.light .bg-matte-dark { background-color: #ffffff !important; }
-
-/* Gradients */
-html.light .bg-radial-gradient-vignette { background: radial-gradient(circle at center, transparent 35%, #f8fafc 98%) !important; }
-html.light .bg-radial-horizon-glow { background: radial-gradient(circle, rgba(2,132,199,0.15) 0%, rgba(219,39,119,0.05) 60%, transparent 100%) !important; }
-html.light .bg-cyber-grid {
-  background-image: linear-gradient(to right, rgba(2,132,199,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(2,132,199,0.05) 1px, transparent 1px) !important;
-}
-html.light .from-matte-black {
-  --tw-gradient-from: #f8fafc var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: rgba(248, 250, 252, 0) var(--tw-gradient-to-position) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-html.light .bg-scanlines { opacity: 0.3 !important; }
-
-/* Text */
-html.light .text-white { color: #0f172a !important; }
-html.light .text-gray-300 { color: #475569 !important; }
-html.light .text-gray-400 { color: #64748b !important; }
-html.light .text-gray-500 { color: #94a3b8 !important; }
-html.light .hover\:text-white:hover { color: #0f172a !important; }
-
-/* Buttons & Components */
-html.light .btn-primary { color: #ffffff !important; background-color: #0ea5e9 !important; box-shadow: 0 4px 14px 0 rgba(14,165,233,0.3) !important; }
-html.light .btn-secondary { color: #db2777 !important; border-color: #db2777 !important; }
-html.light .btn-secondary:hover { color: #ffffff !important; background-color: #db2777 !important; }
-html.light .glass { background-color: rgba(255,255,255,0.7) !important; border-color: rgba(0,0,0,0.06) !important; }
-html.light .glass-card { background-color: #ffffff !important; box-shadow: 0 10px 30px -5px rgba(2,132,199,0.15) !important; border-color: rgba(14,165,233,0.3) !important;}
-html.light .glass-card-pink { background-color: #ffffff !important; box-shadow: 0 10px 30px -5px rgba(219,39,119,0.15) !important; border-color: rgba(219,39,119,0.3) !important;}
-
-/* Borders */
-html.light .border-white\/5, html.light .border-white\/8, html.light .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
-html.light .border-white\/20 { border-color: rgba(0,0,0,0.15) !important; }
-
-/* Neons */
-html.light .text-neon-cyan { color: #0284c7 !important; }
-html.light .text-neon-pink { color: #db2777 !important; }
-html.light .bg-neon-cyan\/5, html.light .bg-neon-cyan\/10, html.light .bg-neon-cyan\/20 { background-color: rgba(2,132,199,0.08) !important; }
-html.light .bg-neon-pink\/5, html.light .bg-neon-pink\/10, html.light .bg-neon-pink\/20 { background-color: rgba(219,39,119,0.08) !important; }
-html.light .border-neon-cyan\/20, html.light .border-neon-cyan\/30, html.light .hover\:border-neon-cyan\/30:hover { border-color: rgba(2,132,199,0.3) !important; }
-html.light .border-neon-pink\/20, html.light .border-neon-pink\/30, html.light .hover\:border-neon-pink\/30:hover { border-color: rgba(219,39,119,0.3) !important; }
-html.light .shadow-\[0_0_20px_rgba\(0\,243\,255\,0\.15\)\] { box-shadow: 0 4px 14px 0 rgba(2,132,199,0.2) !important; }
-html.light .shadow-\[0_0_20px_rgba\(255\,0\,255\,0\.15\)\] { box-shadow: 0 4px 14px 0 rgba(219,39,119,0.2) !important; }
-html.light .shadow-\[0_0_20px_rgba\(168\,85\,247\,0\.15\)\] { box-shadow: 0 4px 14px 0 rgba(168,85,247,0.2) !important; }

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'motion/react';
 import { ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 const testimonialsData = [
@@ -56,6 +56,9 @@ export default function TestimonialsCarousel() {
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { margin: "200px" });
 
   useEffect(() => {
     const handleResize = () => {
@@ -86,38 +89,38 @@ export default function TestimonialsCarousel() {
   };
 
   return (
-    <section className="py-32 relative bg-black overflow-hidden font-sans border-b border-white/5">
+    <section ref={containerRef} className="py-32 relative bg-black overflow-hidden font-sans border-b border-white/5">
       {/* Background Effects */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-neon-pink/5 blur-[100px] rounded-full pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon-cyan/5 blur-[80px] rounded-full pointer-events-none transform-gpu translate-z-0"></div>
+      <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-neon-pink/5 blur-[80px] rounded-full pointer-events-none transform-gpu translate-z-0"></div>
       
       {/* Floating Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute bg-white rounded-full opacity-20"
-            style={{
-              width: Math.random() * 4 + 1 + 'px',
-              height: Math.random() * 4 + 1 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              boxShadow: i % 2 === 0 ? '0 0 10px 2px rgba(0,243,255,0.5)' : '0 0 10px 2px rgba(255,0,255,0.5)',
-              backgroundColor: i % 2 === 0 ? '#00f3ff' : '#ff00ff',
-            }}
-            animate={{
-              y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
-              opacity: [0.2, 0.5, 0.2]
-            }}
-            transition={{
-              duration: Math.random() * 3 + 3,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
-      </div>
+      {!isMobile && isInView && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(3)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full opacity-20"
+              style={{
+                width: Math.random() * 3 + 1 + 'px',
+                height: Math.random() * 3 + 1 + 'px',
+                left: Math.random() * 100 + '%',
+                top: Math.random() * 100 + '%',
+                willChange: 'transform, opacity'
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.1, 0.3, 0.1]
+              }}
+              transition={{
+                duration: Math.random() * 3 + 4,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="text-center mb-16">
